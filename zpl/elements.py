@@ -1,11 +1,7 @@
 from PIL import ImageFont, ImageDraw, ImageOps
 import os
-import barcode
-from barcode import Code128
 from PIL import Image
 import io
-from barcode.charsets import code128
-from barcode.writer import ImageWriter
 from PIL import ImageColor
 import re
 from PIL import Image, ImageDraw, ImageFilter
