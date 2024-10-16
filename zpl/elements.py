@@ -1,7 +1,11 @@
 from PIL import ImageFont, ImageDraw, ImageOps
 import os
+import barcode
+from barcode import Code128
 from PIL import Image
 import io
+from barcode.charsets import code128
+from barcode.writer import ImageWriter
 from PIL import ImageColor
 import re
 from PIL import Image, ImageDraw, ImageFilter
@@ -9,6 +13,7 @@ import binascii
 from pystrich.code128 import Code128Encoder
 from pystrich.datamatrix import DataMatrixEncoder
 from io import BytesIO
+import math
 
 class Text:
     def __init__(self, x, y, text, font_size=12, font=None):
@@ -52,7 +57,7 @@ class TextElement(BaseElement):
 
     def _get_font_path(self):
         base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        font_name = "LiberationMono-Bold.ttf" if self.bold else "LiberationMono-Regular.ttf"
+        font_name = "RobotoCondensed-Bold.ttf" if self.bold else "RobotoCondensed-Regular.ttf"
         return os.path.join(base_dir, "fonts", font_name)
 
     def draw(self, draw):
@@ -139,12 +144,13 @@ class BoxElement(BaseElement):
         return self.__str__()
 
 class BarcodeElement(BaseElement):
-    def __init__(self, x, y, data, width=1, height=100, barcode_type='code128'):
+    def __init__(self, x, y, data, width, height, barcode_type='code128', quality=200):
         super().__init__(x, y)
         self.data = data
         self.width = width
         self.height = height
         self.barcode_type = barcode_type
+        self.quality = quality
 
     # Define a set of known GS1 Application Identifiers
     GS1_AIS = {
@@ -193,30 +199,28 @@ class BarcodeElement(BaseElement):
 
     def draw(self, draw):
         try:
-            # Determine the actual barcode type based on the data
-            actual_type = 'gs1-128' if self.data.startswith('>;') and self.data.endswith('>;') else self.barcode_type
-            
-            print(f"Attempting to draw barcode: type={actual_type}, data={self.data}, width={self.width}, height={self.height}")
-            
-            if not self.data:
-                print("Warning: Empty barcode data, skipping barcode generation")
-                return
+            if self.barcode_type == 'datamatrix':
+                img = self._generate_datamatrix()
+                adjusted_y = self.y + self.height - img.height
+                draw._image.paste(img, (self.x, adjusted_y))
+            else:
+                # Existing logic for other barcode types
+                actual_type = 'gs1-128' if self.data.startswith('>;') and self.data.endswith('>;') else self.barcode_type
+                
+                if actual_type == 'gs1-128':
+                    barcode_image = self._generate_gs1_128()
+                elif actual_type == 'datamatrix':
+                    barcode_image = self._generate_datamatrix()
+                else:  # Default to Code 128
+                    barcode_image = self._generate_code_128()
 
-            # Generate the barcode image
-            if actual_type == 'gs1-128':
-                barcode_image = self._generate_gs1_128()
-            elif actual_type == 'datamatrix':
-                barcode_image = self._generate_datamatrix()
-            else:  # Default to Code 128
-                barcode_image = self._generate_code_128()
+                # Resize the barcode image
+                barcode_image = barcode_image.resize((self.width, self.height), Image.NEAREST)
 
-            # Resize the barcode image
-            barcode_image = barcode_image.resize((self.width, self.height), Image.NEAREST)
+                # Paste the barcode onto the label
+                draw._image.paste(barcode_image, (self.x, self.y))
 
-            # Paste the barcode onto the label
-            draw._image.paste(barcode_image, (self.x, self.y))
-
-            print(f"Drew barcode: {self.data} at ({self.x}, {self.y}) with size {barcode_image.size}")
+            print(f"Drew barcode: {self.data} at ({self.x}, {self.y}) with size {self.width}x{self.height}")
         except Exception as e:
             print(f"Error drawing BarcodeElement: {str(e)}")
             import traceback
@@ -235,8 +239,28 @@ class BarcodeElement(BaseElement):
         return self._encoder_to_image(encoder)
 
     def _generate_datamatrix(self):
-        encoder = DataMatrixEncoder(self.data)
-        return self._encoder_to_image(encoder)
+        try:
+            if self.data.startswith('_1'):
+                # Remove the '_1' prefix before formatting
+                data_without_prefix = self.data[2:]
+                # Replace internal '_1' with FNC1 character (ASCII 29)
+                data_without_prefix = data_without_prefix.replace('_1', chr(29))
+                formatted_data = self._format_gs1_128_data(data_without_prefix)
+                # Remove the FNC1 character that _format_gs1_128_data adds at the start
+                formatted_data = formatted_data[1:]
+                # Add the GS1 FNC1 character (ASCII 232) at the start
+                gs1_data = chr(231) + formatted_data
+            else:
+                gs1_data = self.data
+            print(f"GS1 Data: {gs1_data}")
+            encoder = DataMatrixEncoder(gs1_data)
+            # Calculate the module size based on the quality (DPI)
+            module_size = math.ceil(self.quality / 25.4)  # Convert DPI to modules per mm
+            return self._encoder_to_image(encoder)
+        except Exception as e:
+            print(f"Error generating GS1 DataMatrix: {str(e)}")
+            # Return a blank image in case of error
+            return Image.new('RGB', (100, 100), color=(255, 255, 255))
 
     def _encoder_to_image(self, encoder):
         # Get the PNG data as bytes
