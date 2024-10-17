@@ -1,8 +1,5 @@
 import os
-import re
-import io
 import math
-import binascii
 from io import BytesIO
 from PIL import Image, ImageFont, ImageDraw, ImageOps, ImageColor, ImageFilter
 from barcode import Code128
