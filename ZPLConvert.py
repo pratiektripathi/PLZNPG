@@ -40,16 +40,14 @@ def parse_zpl(zpl_data):
         print(f"Expecting DataMatrix: height={state['barcode_height']}, width={state['barcode_width']}, quality={state['barcode_quality']}")
 
     def handle_fd(parts):
-        print(f"Handling FD command with text: {parts[0] if parts else ''}")
+        print(f"Handling FD command with text: {parts}")
         if parts:
-            data = parts[0]
+            data = parts[0]  # The entire field data, including any commas
             if state['expecting_barcode']:
                 if state['barcode_type'] == 'datamatrix':
-                    # For DataMatrix, we'll use the specified dimensions directly
                     width = state['barcode_width']
                     height = state['barcode_height']
                 else:
-                    # For other barcodes, we'll use the previous logic
                     width = state.get('barcode_width', 100)
                     height = state.get('barcode_height', 100)
                 
@@ -224,6 +222,15 @@ def parse_zpl(zpl_data):
         else:
             print("Insufficient parameters for CI command")
 
+    def split_command(command):
+        cmd = command[:2]
+        if cmd == 'FD':
+            # For FD command, keep everything after 'FD' as a single string
+            return [cmd, command[2:]]
+        else:
+            # For other commands, split by comma as before
+            return [cmd] + command[2:].split(',')
+
     command_handlers = {
         'FO': handle_fo,  # Field Origin - Sets the position for subsequent fields
         'FT': handle_ft,  # Field Typeset - Sets the field position
@@ -247,11 +254,12 @@ def parse_zpl(zpl_data):
             continue
         if command.startswith('XZ'):
             break  # End of ZPL data
-        cmd = command[:2]
-        parts = command[2:].split(',')
+        
+        parts = split_command(command)
+        cmd = parts[0]
         
         if cmd in command_handlers:
-            command_handlers[cmd](parts)
+            command_handlers[cmd](parts[1:])
         else:
             print(f"Unknown or unhandled command: {cmd}")
 
@@ -276,7 +284,7 @@ def main():
         label = parse_zpl(zpl_data)
         
         # After processing all commands and drawing elements
-        output_directory = os.path.expanduser('~/.cursor-tutor')
+        output_directory = os.path.dirname(os.path.abspath(__file__))
         if not os.path.exists(output_directory):
             os.makedirs(output_directory)
         

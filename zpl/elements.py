@@ -51,7 +51,9 @@ class TextElement(BaseElement):
     def _get_font_path(self):
         base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         font_name = "RobotoCondensed-Bold.ttf" if self.bold else "RobotoCondensed-Regular.ttf"
-        return os.path.join(base_dir, "fonts", font_name)
+        font_path = os.path.join(base_dir, "fonts", font_name)
+        print(f"Font path: {font_path}")
+        return font_path
 
     def draw(self, draw):
         try:
@@ -62,13 +64,13 @@ class TextElement(BaseElement):
 
             text_color = (255, 255, 255) if self.reverse else (0, 0, 0)  # White if reversed, else black
             
-            # Calculate text size using font.getbbox()
-            bbox = font.getbbox(self.text)
+            # Use textbbox to get the text dimensions
+            bbox = draw.textbbox((self.x, self.y), self.text, font=font)
             text_width = bbox[2] - bbox[0]
             text_height = bbox[3] - bbox[1]
             
-            # Draw text
-            draw.text((self.x, self.y), self.text, font=font, fill=text_color)
+            # Draw text using textbbox
+            draw.text((self.x, self.y), self.text, font=font, fill=text_color, anchor="lt")
             
             print(f"Drew text: {self.text} at ({self.x}, {self.y}), color={text_color}, size=({text_width}, {text_height})")
         except Exception as e:
@@ -383,7 +385,7 @@ class ImageElement:
         if self.format == 'A':  # ASCII format
             try:
                 image = self.gfa_to_image()
-                draw.bitmap((self.x, self.y), image, fill=1)
+                draw._image.paste(image, (self.x, self.y))
                 print(f"Successfully drew image at ({self.x}, {self.y}), size {self.width}x{self.height}")
                 
                 # Save the image for debugging
