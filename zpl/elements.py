@@ -1,19 +1,15 @@
-from PIL import ImageFont, ImageDraw, ImageOps
 import os
-import barcode
-from barcode import Code128
-from PIL import Image
-import io
-from barcode.charsets import code128
-from barcode.writer import ImageWriter
-from PIL import ImageColor
 import re
-from PIL import Image, ImageDraw, ImageFilter
+import io
+import math
 import binascii
+from io import BytesIO
+from PIL import Image, ImageFont, ImageDraw, ImageOps, ImageColor, ImageFilter
+from barcode import Code128
+from barcode.writer import ImageWriter
+from barcode.charsets import code128
 from pystrich.code128 import Code128Encoder
 from pystrich.datamatrix import DataMatrixEncoder
-from io import BytesIO
-import math
 
 class Text:
     def __init__(self, x, y, text, font_size=12, font=None):
