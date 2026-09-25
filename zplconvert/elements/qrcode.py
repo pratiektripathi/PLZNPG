@@ -13,8 +13,8 @@ class QRCodeElement(BaseElement):
         self.origin_mode = origin_mode
         levels = {'L': QrCode.Ecc.LOW, 'M': QrCode.Ecc.MEDIUM,
                   'Q': QrCode.Ecc.QUARTILE, 'H': QrCode.Ecc.HIGH}
-        # Labelary consumes two switch characters even for the blank prefix
-        # in the supplied template. Do not strip payload whitespace.
+        # Consume two switch characters, including a blank prefix.
+        # Preserve payload whitespace.
         level = levels.get(data[:1], levels.get(error_correction, QrCode.Ecc.MEDIUM))
         self.payload = data[2:]
         if self.payload.startswith(','):

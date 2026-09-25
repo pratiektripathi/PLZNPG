@@ -53,7 +53,7 @@ class FieldBlockElement(TextElement):
         for index, line in enumerate(lines):
             left = indent if index else 0
             available = width - left
-            # Labelary includes a terminal word space in block justification.
+            # Include a terminal word space when measuring block justification.
             occupied = measure(line + ' ')
             alignment = self.block['alignment']
             x = left

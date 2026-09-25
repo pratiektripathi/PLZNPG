@@ -8,8 +8,7 @@ from .optimizer import optimize_image, optimize_zpl
 def convert_zpl_to_image(zpl_data, width=812, height=1218, dpi=203, optimize=False):
     """Convert ZPL data to a PIL Image.
 
-    Default size matches a 4x6" label at 8 dpmm (203 dpi), which is what
-    Labelary uses for typical shipping labels.
+    Default size matches a typical 4x6" shipping label at 8 dpmm (203 dpi).
     """
     if optimize:
         zpl_data = optimize_zpl(zpl_data)

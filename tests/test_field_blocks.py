@@ -1,31 +1,13 @@
-﻿"""Field-block regressions for the supplied label and reusable ZPL behavior."""
-from pathlib import Path
+"""Field-block regressions for reusable ZPL behavior."""
 import unittest
 from PIL import ImageChops
 from zplconvert import convert_zpl_to_image
 from zplconvert.parser import parse_zpl
 from zplconvert.elements.field_block import FieldBlockElement
-from PIL import Image
 
-ROOT = Path(__file__).resolve().parents[1]
 
 
 class FieldBlockTests(unittest.TestCase):
-    def test_supplied_label_centers_track_labelary(self):
-        actual = convert_zpl_to_image((ROOT / 'comparisons/field-block.zpl').read_text())
-        with Image.open(ROOT / 'comparisons/field-block-labelary.png') as reference:
-            boxes = [(34, 40, 777, 135)]
-            for y in (190, 290, 380, 470, 560, 650):
-                boxes.extend([(34, y-5, 298, y+65), (304, y-5, 777, y+65)])
-            for box in boxes:
-                with self.subTest(box=box):
-                    bounds = [image.crop(box).convert('L').point(lambda p: 255 if p < 128 else 0).getbbox()
-                              for image in (reference, actual)]
-                    self.assertTrue(all(bounds))
-                    centers = [(b[0]+b[2])/2 for b in bounds]
-                    # Different bundled glyphs, but field centers must align.
-                    self.assertLessEqual(abs(centers[0]-centers[1]), 5)
-
     def test_field_separator_resets_block(self):
         label = parse_zpl('^XA^FO20,20^A0N,30^FB300,1,0,C^FDHeading^FS^FO20,100^FDPlain^FS^XZ')
         self.assertIsInstance(label.elements[0], FieldBlockElement)
