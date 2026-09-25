@@ -1,0 +1,51 @@
+^XA
+
+^FO30,150{$logo$}^FS
+
+^FO30,30
+^A0N,70
+^FD{$brand$}^FS
+
+^FO50,130^GB700,3,3^FS
+
+^FO650,140
+^A0N,40
+^FDUNIT II^FS
+
+^FO260,200
+^A0N,40
+^FDSIZE      : ^FS
+
+^FO420,190
+^A0N,70
+^FD{$size$}^FS
+
+^FO260,310
+^A0N,40
+^FDWEIGHT :  ^FS
+
+^FO420,290
+^A0N,80
+^FD{$weight$}^FS
+
+^FO260,420
+^A0N,40
+^FDLENGTH :^FS
+
+^FO420,400
+^A0N,70
+^FD{$length$}^FS
+
+^FO400,500
+^A0N,30
+^FD{$bat$}^FS
+
+^FO400,550
+^A0N,30
+^FD{$rst$}^FS
+
+^FXBarcode and text^FS
+^FO50,420
+^BQN,2,5,M^FD   {$qr$}^FS
+
+^XZ
