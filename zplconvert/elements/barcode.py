@@ -97,13 +97,13 @@ class BarcodeElement(BaseElement):
         image = self._generate_datamatrix() if self.barcode_type == 'datamatrix' else self._generate_code_128()
         if self.barcode_type != 'datamatrix' and self.print_text:
             text = re.sub(r'>.', '', self.data)
-            font = ImageFont.truetype(str(Path(__file__).resolve().parents[2] / 'fonts/LiberationMono-Regular.ttf'), 50)
+            font = ImageFont.truetype(str(Path(__file__).resolve().parents[2] / 'fonts/LiberationMono-Regular.ttf'), 10 * self.module_width)
             bbox = font.getbbox(text)
             caption_height = bbox[3] - bbox[1]
             combined = Image.new('RGB', (image.width, image.height + caption_height + 12), 'white')
             bar_y = caption_height + 12 if self.text_above else 0
             combined.paste(image, (0, bar_y))
-            caption_y = 0 if self.text_above else image.height + 6
+            caption_y = 0 if self.text_above else image.height + 5
             ImageDraw.Draw(combined).text(((image.width-font.getlength(text))/2, caption_y-bbox[1]), text, font=font, fill='black')
             image = combined
         rotation = {'N': 0, 'R': 270, 'I': 180, 'B': 90}[self.orientation]

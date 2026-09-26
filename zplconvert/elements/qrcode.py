@@ -7,10 +7,11 @@ from .base import BaseElement
 
 class QRCodeElement(BaseElement):
     def __init__(self, x, y, data, magnification=2, error_correction='Q',
-                 mask=-1, origin_mode='FO'):
+                 mask=-1, origin_mode='FO', origin_offset=10):
         super().__init__(x, y)
         self.magnification = magnification
         self.origin_mode = origin_mode
+        self.origin_offset = origin_offset
         levels = {'L': QrCode.Ecc.LOW, 'M': QrCode.Ecc.MEDIUM,
                   'Q': QrCode.Ecc.QUARTILE, 'H': QrCode.Ecc.HIGH}
         # Consume two switch characters, including a blank prefix.
@@ -47,5 +48,5 @@ class QRCodeElement(BaseElement):
                 if self.symbol.get_module(x, y):
                     painter.rectangle((x*module, y*module, (x+1)*module-1,
                                        (y+1)*module-1), fill=255)
-        top = self.y - size if self.origin_mode == 'FT' else self.y + 2*module
+        top = self.y - size if self.origin_mode == 'FT' else self.y + self.origin_offset
         draw._image.paste('black', (self.x, top, self.x+size, top+size), ink)

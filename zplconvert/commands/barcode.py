@@ -90,6 +90,7 @@ def handle_fd_barcode(params, state, label):
             magnification=state['qr_magnification'],
             error_correction=state['qr_error_correction'],
             mask=state['qr_mask'], origin_mode=state.get('origin_mode', 'FO'),
+            origin_offset=state.get('module_height', 10),
         ))
         state['expecting_barcode'] = False
         return
